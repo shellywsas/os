@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מושגי מערכות הפעלה - סייבר</title>
+    <!-- שימוש ב-Tailwind לעיצוב המסך -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* --- הגדרות עיצוב ייעודיות למדפסת בלבד --- */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 1cm; /* הקטנת השוליים כדי שיהיה יותר מקום בעמוד */
+            }
+
+            body {
+                background-color: white !important;
+                color: black !important;
+                font-size: 12pt; /* גופן מעט קטן יותר לחסכון במקום */
+            }
+
+            /* הסתרת אלמנטים של המסך (כפתורים, רקעים) בזמן הדפסה */
+            .no-print {
+                display: none !important;
+            }
+
+            /* כל קטגוריה מתחילה בעמוד חדש */
+            .print-category-page {
+                page-break-before: always;
+                padding-top: 0.5cm;
+            }
+
+            /* העמוד הראשון לא צריך שבירת שורה לפניו */
+            .print-category-page:first-of-type {
+                page-break-before: auto;
+                padding-top: 0;
+            }
+
+            /* כותרת הקטגוריה בהדפסה */
+            .category-title {
+                font-size: 20pt; /* כותרת מעט יותר קטנה */
+                font-weight: 800;
+                text-align: center;
+                border-bottom: 3px solid black;
+                padding-bottom: 6px;
+                margin-bottom: 15px; /* פחות רווח מתחת לכותרת */
+                text-transform: uppercase;
+            }
+
+            /* עיצוב הפתקית / מושג להדפסה - הפיכה לקומפקטי יותר */
+            .concept-card {
+                border: 1.5px solid black !important;
+                border-radius: 6px !important;
+                margin-bottom: 12px !important; /* רווח קטן יותר בין פתקיות */
+                padding: 10px 15px !important; /* פחות ריפוד כדי לחסוך מקום */
+                page-break-inside: avoid; /* מונע חיתוך של מושג באמצע מעבר עמוד */
+                background: white !important;
+                box-shadow: none !important;
+            }
+
+            .concept-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #555;
+                padding-bottom: 4px;
+                margin-bottom: 6px;
+            }
+
+            .concept-term-en {
+                font-size: 11pt; /* הקטנתי מעט כדי שראשי התיבות המלאים ייכנסו טוב */
+                font-weight: bold;
+                direction: ltr;
+                text-align: left;
+                max-width: 60%;
+            }
+
+            .concept-term-he {
+                font-size: 14pt;
+                font-weight: bold;
+            }
+
+            .concept-explanation {
+                font-size: 12pt;
+                line-height: 1.3;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- אזור עליון למסך בלבד (יוסתר בהדפסה) -->
+    <div class="no-print max-w-4xl mx-auto p-6 text-center">
+        <h1 class="text-3xl font-bold text-indigo-900 mb-2">המושגים שלי - מערכות הפעלה</h1>
+        <p class="text-slate-600 mb-6">האתר מעוצב במיוחד להדפסה בשחור-לבן על דפי A4. כל נושא יקבל דף משלו!</p>
+        
+        <button onclick="window.print()" class="bg-black text-white hover:bg-gray-800 transition-colors px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center gap-3 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            הדפס פתקיות לחדר
+        </button>
+    </div>
+
+    <!-- המיכל שאליו נזריק את התוכן -->
+    <div id="content-container" class="max-w-4xl mx-auto p-4 md:p-8"></div>
+
+    <script>
+        // המידע - רשימת המושגים
+        const concepts = [
+            // --- מושגי יסוד ---
+            { category: "מושגי יסוד", termEn: "Operating System", termHe: "מערכת הפעלה", explanation: "התוכנה הראשית שמנהלת את המחשב, החומרה, ומשמשת כגשר למשתמש ולתוכניות." },
+            { category: "מושגי יסוד", termEn: "Hardware", termHe: "חומרה", explanation: "הרכיבים הפיזיים והאלקטרוניים של המחשב שאפשר לגעת בהם." },
+            { category: "מושגי יסוד", termEn: "Software", termHe: "תוכנה", explanation: "אוסף של פקודות ונתונים וירטואליים שאומרים לחומרה מה לעשות." },
+            
+            // --- ארכיטקטורת מערכת הפעלה ---
+            { category: "ארכיטקטורה", termEn: "Kernel", termHe: "קרנל / ליבה", explanation: "לב מערכת ההפעלה שרץ עם הרשאות מלאות ומנהל את כל משאבי המחשב." },
+            { category: "ארכיטקטורה", termEn: "User Space", termHe: "יוזר / מרחב המשתמש", explanation: "סביבת הריצה המוגבלת והבטוחה שבה פועלות התוכניות הרגילות שלנו." },
+            { category: "ארכיטקטורה", termEn: "System Call (Syscall)", termHe: "קריאת מערכת", explanation: "בקשה של תוכנית (מהיוזר) מהקרנל לבצע פעולה שדורשת הרשאות מיוחדות." },
+            { category: "ארכיטקטורה", termEn: "Driver", termHe: "דרייבר / מנהל התקן", explanation: "תוכנה קטנה המשמשת כמתורגמן בין מערכת ההפעלה לרכיב חומרה ספציפי." },
+            { category: "ארכיטקטורה", termEn: "Handle", termHe: "מזהה / מצביע מערכת", explanation: "מספר שמערכת ההפעלה מספקת לתוכנית כדי שהיא תוכל לגשת למשאב מערכת (כמו קובץ פתוח)." },
+
+            // --- חומרה וזיכרון ---
+            { category: "חומרה וזיכרון", termEn: "CPU (Central Processing Unit)", termHe: "מעבד", explanation: "\"המוח\" של המחשב, הרכיב שמבצע את חישובי התוכניות ופקודות מערכת ההפעלה." },
+            { category: "חומרה וזיכרון", termEn: "RAM (Random Access Memory)", termHe: "זיכרון גישה אקראית / ראשי", explanation: "הזיכרון המהיר שבו רצות התוכניות הפעילות כרגע במחשב." },
+            { category: "חומרה וזיכרון", termEn: "ROM (Read-Only Memory)", termHe: "זיכרון לקריאה בלבד", explanation: "זיכרון קבוע המכיל נתונים חיוניים להפעלת המחשב שלא נמחקים גם כשמכבים אותו." },
+            { category: "חומרה וזיכרון", termEn: "Volatile Memory", termHe: "זיכרון נדיף", explanation: "סוג זיכרון (כמו RAM) שהמידע שעליו נמחק מיד כשאין אספקת חשמל." },
+            { category: "חומרה וזיכרון", termEn: "Non-Volatile", termHe: "זיכרון לא נדיף", explanation: "סוג זיכרון (כמו דיסק קשיח) ששומר על המידע שלו גם ללא חשמל." },
+            { category: "חומרה וזיכרון", termEn: "Cache", termHe: "זיכרון מטמון", explanation: "זיכרון קטן ומהיר במיוחד הנמצא קרוב למעבד, ושומר מידע שנמצא בשימוש תדיר." },
+            { category: "חומרה וזיכרון", termEn: "Registers", termHe: "אוגרים", explanation: "תאי הזיכרון הקטנים והמהירים ביותר שנמצאים בתוך המעבד עצמו." },
+            { category: "חומרה וזיכרון", termEn: "Disk", termHe: "דיסק / כונן", explanation: "אמצעי האחסון המרכזי והלא-נדיף של המחשב לשמירת קבצים לטווח ארוך." },
+            { category: "חומרה וזיכרון", termEn: "SSD (Solid State Drive)", termHe: "כונן מצב מוצק", explanation: "סוג מהיר ומודרני של כונן אחסון ללא חלקים נעים (מבוסס פלאש)." },
+
+            // --- תוכנה ותהליכים ---
+            { category: "תוכנה ותהליכים", termEn: "Program", termHe: "תוכנית", explanation: "אוסף פקודות סטטי השמור על הדיסק שמחכה שנריץ אותו." },
+            { category: "תוכנה ותהליכים", termEn: "Process", termHe: "תהליך", explanation: "תוכנית שנמצאת כרגע בזמן ריצה בתוך הזיכרון (RAM)." },
+            { category: "תוכנה ותהליכים", termEn: "Thread", termHe: "תהליכון", explanation: "יחידת הביצוע הקטנה ביותר בתוך תהליך, שיכולה לרוץ במקביל לתהליכונים אחרים." },
+            { category: "תוכנה ותהליכים", termEn: "Compiler", termHe: "מהדר", explanation: "תוכנה שמתרגמת קוד מקור שלם משפת תכנות לשפת מכונה לפני ההרצה." },
+            { category: "תוכנה ותהליכים", termEn: "Interpreter", termHe: "מתורגמן", explanation: "תוכנה שקוראת, מתרגמת ומבצעת קוד שורה אחר שורה בזמן אמת." },
+            { category: "תוכנה ותהליכים", termEn: "Recursion", termHe: "רקורסיה", explanation: "מצב בתכנות שבו פונקציה קוראת לעצמה שוב ושוב כדי לפתור בעיה." },
+            { category: "תוכנה ותהליכים", termEn: "API (Application Prog. Interface)", termHe: "ממשק תכנות", explanation: "אוסף של כללים המאפשר לתוכניות שונות 'לדבר' ולבקש שירותים אחת מהשנייה." },
+
+            // --- ניהול זיכרון ---
+            { category: "ניהול זיכרון", termEn: "Virtual Memory", termHe: "זיכרון וירטואלי", explanation: "טכניקה המשתמשת בדיסק הקשיח כאילו הוא RAM נוסף, כדי לאפשר הרצת תוכניות גדולות." },
+            { category: "ניהול זיכרון", termEn: "Pages", termHe: "דפים", explanation: "בלוקים קטנים ובגודל קבוע שאליהם מחולק הזיכרון הוירטואלי כדי לנהל אותו ביעילות." },
+            { category: "ניהול זיכרון", termEn: "Page Fault", termHe: "חוסר דף", explanation: "קורה כשהמעבד מחפש מידע ב-RAM ומגלה שהוא נמצא כרגע בדיסק הקשיח ויש לטעון אותו." },
+            { category: "ניהול זיכרון", termEn: "Page File", termHe: "קובץ החלפה", explanation: "קובץ על הדיסק הקשיח שמשמש כהרחבה ל-RAM עבור הזיכרון הוירטואלי." },
+            { category: "ניהול זיכרון", termEn: "Stack", termHe: "מחסנית", explanation: "אזור בזיכרון התהליך המשמש לשמירת משתנים מקומיים וקריאות לפונקציות מסודרות." },
+            { category: "ניהול זיכרון", termEn: "Heap", termHe: "ערימה", explanation: "אזור בזיכרון המיועד להקצאה דינמית ואקראית של זיכרון בזמן ריצת התוכנית." },
+
+            // --- סנכרון ---
+            { category: "סנכרון", termEn: "Critical Section", termHe: "קטע קריטי", explanation: "חלק בקוד שניגש למשאב משותף, ורק תהליכון אחד רשאי להיות בו בו-זמנית." },
+            { category: "סנכרון", termEn: "Mutex", termHe: "מנעול מיוטקס", explanation: "מנגנון אבטחה שמוודא שרק תהליכון אחד יוכל להיכנס לקטע הקריטי בכל פעם." },
+            { category: "סנכרון", termEn: "lock()", termHe: "נעילה", explanation: "הפעולה שתהליכון מבצע כדי 'לנעול' ולבלוט בלעדיות לפני כניסה לקטע קריטי." },
+
+            // --- יחידות מידה ---
+            { category: "יחידות מידה", termEn: "Bit (b)", termHe: "ביט", explanation: "היחידה הבסיסית ביותר של מידע במחשב, ערכה יכול להיות 0 או 1 בלבד." },
+            { category: "יחידות מידה", termEn: "Byte (B)", termHe: "בייט", explanation: "יחידת זיכרון המורכבת מ-8 ביטים (Bits) ברצף." },
+            { category: "יחידות מידה", termEn: "KB (Kilobyte)", termHe: "קילו-בייט", explanation: "יחידת מידה השווה לכ-1,000 בייטים (או 1,024 בדיוק)." },
+            { category: "יחידות מידה", termEn: "MB (Megabyte)", termHe: "מגה-בייט", explanation: "יחידת מידה השווה לכמיליון בייטים (1,024 KB)." },
+            { category: "יחידות מידה", termEn: "GB (Gigabyte)", termHe: "גיגה-בייט", explanation: "יחידת מידה השווה לכמיליארד בייטים (1,024 MB)." },
+            { category: "יחידות מידה", termEn: "TB (Terabyte)", termHe: "טרה-בייט", explanation: "יחידת מידה עצומה השווה ל-1,024 GB." },
+
+            // --- שונות ---
+            { category: "שונות (רשתות)", termEn: "HTTP (Hypertext Transfer Protocol)", termHe: "בקשת GET", explanation: "בקשת רשת סטנדרטית שתפקידה לבקש ולקרוא נתונים משרת (כמו טעינת אתר)." }
+        ];
+
+        // מציאת הקטגוריות הייחודיות
+        const categories = [...new Set(concepts.map(c => c.category))];
+        const container = document.getElementById('content-container');
+
+        // בניית התוכן (במסך זה ייראה רשימה ארוכה ויפה, במדפסת כל קטגוריה תהיה בדף נפרד)
+        categories.forEach(category => {
+            // יצירת עמוד לקטגוריה
+            const categorySection = document.createElement('div');
+            categorySection.className = 'print-category-page mb-16';
+
+            // כותרת הקטגוריה
+            const title = document.createElement('h2');
+            title.className = 'category-title text-2xl md:text-3xl font-extrabold text-slate-800 border-b-2 border-slate-300 pb-2 mb-6';
+            title.innerText = `נושא: ${category}`;
+            categorySection.appendChild(title);
+
+            // יצירת הפתקיות תחת הקטגוריה
+            const categoryConcepts = concepts.filter(c => c.category === category);
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 gap-4'; // למסך
+
+            categoryConcepts.forEach(concept => {
+                const card = document.createElement('div');
+                card.className = 'concept-card bg-white p-5 rounded-xl shadow-sm border border-slate-200';
+                
+                card.innerHTML = `
+                    <div class="concept-header flex flex-col sm:flex-row sm:justify-between sm:align-center mb-3">
+                        <span class="concept-term-he text-xl font-bold text-slate-900">${concept.termHe}</span>
+                        <span class="concept-term-en text-sm sm:text-lg font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded" dir="ltr">${concept.termEn}</span>
+                    </div>
+                    <div class="concept-explanation text-slate-700 text-lg">
+                        ${concept.explanation}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            categorySection.appendChild(grid);
+            container.appendChild(categorySection);
+        });
+    </script>
+</body>
+</html>
