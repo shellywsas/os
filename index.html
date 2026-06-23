@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מושגי מערכות הפעלה - סייבר</title>
-    <!-- שימוש ב-Tailwind לעיצוב המסך -->
+    <title>מערכות הפעלה - למידה ומשחק</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
     
@@ -13,55 +13,77 @@
             font-family: 'Heebo', sans-serif;
             background-color: #f8fafc;
         }
+        
+        /* אנימציות לכפתורי החידון */
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .correct-answer {
+            background-color: #22c55e !important;
+            color: white !important;
+            border-color: #16a34a !important;
+        }
+        .wrong-answer {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
 
-        /* --- הגדרות עיצוב ייעודיות למדפסת בלבד --- */
+        /* --- הגדרות עיצוב למדפסת --- */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 1cm; /* הקטנת השוליים כדי שיהיה יותר מקום בעמוד */
+                margin: 1cm;
             }
 
             body {
                 background-color: white !important;
                 color: black !important;
-                font-size: 12pt; /* גופן מעט קטן יותר לחסכון במקום */
             }
 
-            /* הסתרת אלמנטים של המסך (כפתורים, רקעים) בזמן הדפסה */
-            .no-print {
+            /* הסתרת כל מה שלא שייך להדפסה */
+            .no-print, #quiz-view, nav {
                 display: none !important;
             }
 
-            /* כל קטגוריה מתחילה בעמוד חדש */
+            /* הבטחה שתצוגת המילון תמיד תודפס, גם אם היינו בטאב של החידון */
+            #dictionary-view {
+                display: block !important;
+            }
+
             .print-category-page {
                 page-break-before: always;
                 padding-top: 0.5cm;
             }
 
-            /* העמוד הראשון לא צריך שבירת שורה לפניו */
             .print-category-page:first-of-type {
                 page-break-before: auto;
                 padding-top: 0;
             }
 
-            /* כותרת הקטגוריה בהדפסה */
             .category-title {
-                font-size: 20pt; /* כותרת מעט יותר קטנה */
+                font-size: 20pt;
                 font-weight: 800;
                 text-align: center;
                 border-bottom: 3px solid black;
                 padding-bottom: 6px;
-                margin-bottom: 15px; /* פחות רווח מתחת לכותרת */
+                margin-bottom: 15px;
                 text-transform: uppercase;
             }
 
-            /* עיצוב הפתקית / מושג להדפסה - הפיכה לקומפקטי יותר */
             .concept-card {
                 border: 1.5px solid black !important;
                 border-radius: 6px !important;
-                margin-bottom: 12px !important; /* רווח קטן יותר בין פתקיות */
-                padding: 10px 15px !important; /* פחות ריפוד כדי לחסוך מקום */
-                page-break-inside: avoid; /* מונע חיתוך של מושג באמצע מעבר עמוד */
+                margin-bottom: 12px !important;
+                padding: 10px 15px !important;
+                page-break-inside: avoid;
                 background: white !important;
                 box-shadow: none !important;
             }
@@ -76,7 +98,7 @@
             }
 
             .concept-term-en {
-                font-size: 11pt; /* הקטנתי מעט כדי שראשי התיבות המלאים ייכנסו טוב */
+                font-size: 11pt;
                 font-weight: bold;
                 direction: ltr;
                 text-align: left;
@@ -95,38 +117,119 @@
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-slate-800 flex flex-col min-h-screen">
 
-    <!-- אזור עליון למסך בלבד (יוסתר בהדפסה) -->
-    <div class="no-print max-w-4xl mx-auto p-6 text-center">
-        <h1 class="text-3xl font-bold text-indigo-900 mb-2">המושגים שלי - מערכות הפעלה</h1>
-        <p class="text-slate-600 mb-6">האתר מעוצב במיוחד להדפסה בשחור-לבן על דפי A4. כל נושא יקבל דף משלו!</p>
-        
-        <button onclick="window.print()" class="bg-black text-white hover:bg-gray-800 transition-colors px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center gap-3 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            הדפס פתקיות לחדר
-        </button>
-    </div>
+    <!-- תפריט ניווט עליון (מוסתר בהדפסה) -->
+    <nav class="no-print bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto p-4 flex justify-center gap-4">
+            <button onclick="switchTab('dictionary')" id="tab-dict" class="px-6 py-3 rounded-full font-bold text-lg transition-colors bg-indigo-600 text-white shadow-md">
+                📖 מילון מושגים
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="px-6 py-3 rounded-full font-bold text-lg transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200">
+                🎮 חידון סייבר
+            </button>
+        </div>
+    </nav>
 
-    <!-- המיכל שאליו נזריק את התוכן -->
-    <div id="content-container" class="max-w-4xl mx-auto p-4 md:p-8"></div>
+    <!-- ========================================== -->
+    <!-- אזור המילון (להדפסה ולקריאה) -->
+    <!-- ========================================== -->
+    <main id="dictionary-view" class="flex-grow p-4 md:p-8">
+        <div class="no-print max-w-4xl mx-auto text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-900 mb-3">מילון מערכות הפעלה</h1>
+            <p class="text-lg text-slate-600 mb-6">כל המושגים שלמדת, מסודרים ומוכנים לקריאה או להדפסה על דפי A4.</p>
+            
+            <button onclick="window.print()" class="bg-black text-white hover:bg-gray-800 transition-colors px-8 py-4 rounded-xl font-bold text-lg inline-flex items-center gap-3 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                הדפס פתקיות לחדר
+            </button>
+        </div>
+
+        <div id="content-container" class="max-w-4xl mx-auto"></div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- אזור החידון -->
+    <!-- ========================================== -->
+    <main id="quiz-view" class="hidden flex-grow flex items-center justify-center p-4 bg-[#f0fdf4]">
+        <div class="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-green-100">
+            
+            <!-- מסך פתיחה -->
+            <div id="start-screen" class="p-8 md:p-12 text-center">
+                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">חידון מערכות הפעלה</h2>
+                <p class="text-lg text-slate-600 mb-8">בואי נבדוק כמה את זוכרת מהקורס! בכל משחק תקבלי 10 שאלות אקראיות מתוך המושגים שלמדת.</p>
+                <button onclick="startGame()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 px-10 rounded-2xl shadow-lg transition-colors w-full sm:w-auto">
+                    התחלי משחק
+                </button>
+            </div>
+
+            <!-- מסך המשחק -->
+            <div id="game-screen" class="hidden p-6 md:p-10 relative">
+                
+                <!-- כפתור יציאה באמצע המשחק -->
+                <button onclick="quitGame()" class="absolute top-6 left-6 md:top-10 md:left-10 text-red-500 hover:text-red-700 hover:bg-red-50 font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    יציאה
+                </button>
+
+                <!-- סרגל התקדמות וניקוד -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 pt-8 md:pt-0">
+                    <div class="text-slate-500 font-bold bg-slate-100 px-4 py-2 rounded-lg">
+                        שאלה <span id="current-q-num">1</span> מתוך <span id="total-q-num">10</span>
+                    </div>
+                    <div class="text-green-600 font-bold bg-green-50 px-4 py-2 rounded-lg text-lg ml-auto sm:ml-0">
+                        ניקוד: <span id="score-display">0</span>
+                    </div>
+                </div>
+
+                <!-- פס התקדמות חזותי -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mb-8 overflow-hidden">
+                    <div id="progress-bar" class="bg-green-500 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <!-- השאלה -->
+                <div class="mb-8">
+                    <h3 class="text-sm font-bold text-slate-400 mb-2 uppercase tracking-wider">איזה מושג מתואר כאן?</h3>
+                    <p id="question-text" class="text-2xl md:text-3xl font-bold text-slate-800 leading-tight">
+                        <!-- כאן יופיע ההסבר -->
+                    </p>
+                </div>
+
+                <!-- אפשרויות בחירה -->
+                <div id="options-container" class="grid grid-cols-1 gap-3 md:gap-4">
+                    <!-- הכפתורים יוזרקו לכאן דרך JS -->
+                </div>
+            </div>
+
+            <!-- מסך סיום -->
+            <div id="end-screen" class="hidden p-8 md:p-12 text-center">
+                <div class="text-6xl mb-6" id="end-emoji">🏆</div>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-2" id="end-title">כל הכבוד!</h2>
+                <p class="text-xl text-slate-600 mb-8">
+                    הצלחת לענות נכון על <span id="final-score" class="font-bold text-green-600 text-2xl"></span> מתוך 10 שאלות.
+                </p>
+                <button onclick="startGame()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg py-4 px-8 rounded-xl shadow-md transition-colors inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    שחקי שוב
+                </button>
+            </div>
+        </div>
+    </main>
 
     <script>
-        // המידע - רשימת המושגים
+        // המאגר המרכזי של כל המושגים - משמש גם למילון וגם לחידון
         const concepts = [
-            // --- מושגי יסוד ---
             { category: "מושגי יסוד", termEn: "Operating System", termHe: "מערכת הפעלה", explanation: "התוכנה הראשית שמנהלת את המחשב, החומרה, ומשמשת כגשר למשתמש ולתוכניות." },
             { category: "מושגי יסוד", termEn: "Hardware", termHe: "חומרה", explanation: "הרכיבים הפיזיים והאלקטרוניים של המחשב שאפשר לגעת בהם." },
             { category: "מושגי יסוד", termEn: "Software", termHe: "תוכנה", explanation: "אוסף של פקודות ונתונים וירטואליים שאומרים לחומרה מה לעשות." },
-            
-            // --- ארכיטקטורת מערכת הפעלה ---
             { category: "ארכיטקטורה", termEn: "Kernel", termHe: "קרנל / ליבה", explanation: "לב מערכת ההפעלה שרץ עם הרשאות מלאות ומנהל את כל משאבי המחשב." },
             { category: "ארכיטקטורה", termEn: "User Space", termHe: "יוזר / מרחב המשתמש", explanation: "סביבת הריצה המוגבלת והבטוחה שבה פועלות התוכניות הרגילות שלנו." },
-            { category: "ארכיטקטורה", termEn: "System Call (Syscall)", termHe: "קריאת מערכת", explanation: "בקשה של תוכנית (מהיוזר) מהקרנל לבצע פעולה שדורשת הרשאות מיוחדות." },
+            { category: "ארכיטקטורה", termEn: "System Call", termHe: "קריאת מערכת", explanation: "בקשה של תוכנית (מהיוזר) מהקרנל לבצע פעולה שדורשת הרשאות מיוחדות." },
             { category: "ארכיטקטורה", termEn: "Driver", termHe: "דרייבר / מנהל התקן", explanation: "תוכנה קטנה המשמשת כמתורגמן בין מערכת ההפעלה לרכיב חומרה ספציפי." },
             { category: "ארכיטקטורה", termEn: "Handle", termHe: "מזהה / מצביע מערכת", explanation: "מספר שמערכת ההפעלה מספקת לתוכנית כדי שהיא תוכל לגשת למשאב מערכת (כמו קובץ פתוח)." },
-
-            // --- חומרה וזיכרון ---
             { category: "חומרה וזיכרון", termEn: "CPU (Central Processing Unit)", termHe: "מעבד", explanation: "\"המוח\" של המחשב, הרכיב שמבצע את חישובי התוכניות ופקודות מערכת ההפעלה." },
             { category: "חומרה וזיכרון", termEn: "RAM (Random Access Memory)", termHe: "זיכרון גישה אקראית / ראשי", explanation: "הזיכרון המהיר שבו רצות התוכניות הפעילות כרגע במחשב." },
             { category: "חומרה וזיכרון", termEn: "ROM (Read-Only Memory)", termHe: "זיכרון לקריאה בלבד", explanation: "זיכרון קבוע המכיל נתונים חיוניים להפעלת המחשב שלא נמחקים גם כשמכבים אותו." },
@@ -136,8 +239,6 @@
             { category: "חומרה וזיכרון", termEn: "Registers", termHe: "אוגרים", explanation: "תאי הזיכרון הקטנים והמהירים ביותר שנמצאים בתוך המעבד עצמו." },
             { category: "חומרה וזיכרון", termEn: "Disk", termHe: "דיסק / כונן", explanation: "אמצעי האחסון המרכזי והלא-נדיף של המחשב לשמירת קבצים לטווח ארוך." },
             { category: "חומרה וזיכרון", termEn: "SSD (Solid State Drive)", termHe: "כונן מצב מוצק", explanation: "סוג מהיר ומודרני של כונן אחסון ללא חלקים נעים (מבוסס פלאש)." },
-
-            // --- תוכנה ותהליכים ---
             { category: "תוכנה ותהליכים", termEn: "Program", termHe: "תוכנית", explanation: "אוסף פקודות סטטי השמור על הדיסק שמחכה שנריץ אותו." },
             { category: "תוכנה ותהליכים", termEn: "Process", termHe: "תהליך", explanation: "תוכנית שנמצאת כרגע בזמן ריצה בתוך הזיכרון (RAM)." },
             { category: "תוכנה ותהליכים", termEn: "Thread", termHe: "תהליכון", explanation: "יחידת הביצוע הקטנה ביותר בתוך תהליך, שיכולה לרוץ במקביל לתהליכונים אחרים." },
@@ -145,73 +246,222 @@
             { category: "תוכנה ותהליכים", termEn: "Interpreter", termHe: "מתורגמן", explanation: "תוכנה שקוראת, מתרגמת ומבצעת קוד שורה אחר שורה בזמן אמת." },
             { category: "תוכנה ותהליכים", termEn: "Recursion", termHe: "רקורסיה", explanation: "מצב בתכנות שבו פונקציה קוראת לעצמה שוב ושוב כדי לפתור בעיה." },
             { category: "תוכנה ותהליכים", termEn: "API (Application Prog. Interface)", termHe: "ממשק תכנות", explanation: "אוסף של כללים המאפשר לתוכניות שונות 'לדבר' ולבקש שירותים אחת מהשנייה." },
-
-            // --- ניהול זיכרון ---
             { category: "ניהול זיכרון", termEn: "Virtual Memory", termHe: "זיכרון וירטואלי", explanation: "טכניקה המשתמשת בדיסק הקשיח כאילו הוא RAM נוסף, כדי לאפשר הרצת תוכניות גדולות." },
             { category: "ניהול זיכרון", termEn: "Pages", termHe: "דפים", explanation: "בלוקים קטנים ובגודל קבוע שאליהם מחולק הזיכרון הוירטואלי כדי לנהל אותו ביעילות." },
             { category: "ניהול זיכרון", termEn: "Page Fault", termHe: "חוסר דף", explanation: "קורה כשהמעבד מחפש מידע ב-RAM ומגלה שהוא נמצא כרגע בדיסק הקשיח ויש לטעון אותו." },
             { category: "ניהול זיכרון", termEn: "Page File", termHe: "קובץ החלפה", explanation: "קובץ על הדיסק הקשיח שמשמש כהרחבה ל-RAM עבור הזיכרון הוירטואלי." },
             { category: "ניהול זיכרון", termEn: "Stack", termHe: "מחסנית", explanation: "אזור בזיכרון התהליך המשמש לשמירת משתנים מקומיים וקריאות לפונקציות מסודרות." },
             { category: "ניהול זיכרון", termEn: "Heap", termHe: "ערימה", explanation: "אזור בזיכרון המיועד להקצאה דינמית ואקראית של זיכרון בזמן ריצת התוכנית." },
-
-            // --- סנכרון ---
             { category: "סנכרון", termEn: "Critical Section", termHe: "קטע קריטי", explanation: "חלק בקוד שניגש למשאב משותף, ורק תהליכון אחד רשאי להיות בו בו-זמנית." },
             { category: "סנכרון", termEn: "Mutex", termHe: "מנעול מיוטקס", explanation: "מנגנון אבטחה שמוודא שרק תהליכון אחד יוכל להיכנס לקטע הקריטי בכל פעם." },
             { category: "סנכרון", termEn: "lock()", termHe: "נעילה", explanation: "הפעולה שתהליכון מבצע כדי 'לנעול' ולבלוט בלעדיות לפני כניסה לקטע קריטי." },
-
-            // --- יחידות מידה ---
             { category: "יחידות מידה", termEn: "Bit (b)", termHe: "ביט", explanation: "היחידה הבסיסית ביותר של מידע במחשב, ערכה יכול להיות 0 או 1 בלבד." },
             { category: "יחידות מידה", termEn: "Byte (B)", termHe: "בייט", explanation: "יחידת זיכרון המורכבת מ-8 ביטים (Bits) ברצף." },
             { category: "יחידות מידה", termEn: "KB (Kilobyte)", termHe: "קילו-בייט", explanation: "יחידת מידה השווה לכ-1,000 בייטים (או 1,024 בדיוק)." },
             { category: "יחידות מידה", termEn: "MB (Megabyte)", termHe: "מגה-בייט", explanation: "יחידת מידה השווה לכמיליון בייטים (1,024 KB)." },
             { category: "יחידות מידה", termEn: "GB (Gigabyte)", termHe: "גיגה-בייט", explanation: "יחידת מידה השווה לכמיליארד בייטים (1,024 MB)." },
             { category: "יחידות מידה", termEn: "TB (Terabyte)", termHe: "טרה-בייט", explanation: "יחידת מידה עצומה השווה ל-1,024 GB." },
-
-            // --- שונות ---
             { category: "שונות (רשתות)", termEn: "HTTP (Hypertext Transfer Protocol)", termHe: "בקשת GET", explanation: "בקשת רשת סטנדרטית שתפקידה לבקש ולקרוא נתונים משרת (כמו טעינת אתר)." }
         ];
 
-        // מציאת הקטגוריות הייחודיות
-        const categories = [...new Set(concepts.map(c => c.category))];
-        const container = document.getElementById('content-container');
+        // ==========================================
+        // לוגיקת מעבר בין טאבים
+        // ==========================================
+        function switchTab(tabName) {
+            const dictView = document.getElementById('dictionary-view');
+            const quizView = document.getElementById('quiz-view');
+            const tabDict = document.getElementById('tab-dict');
+            const tabQuiz = document.getElementById('tab-quiz');
 
-        // בניית התוכן (במסך זה ייראה רשימה ארוכה ויפה, במדפסת כל קטגוריה תהיה בדף נפרד)
-        categories.forEach(category => {
-            // יצירת עמוד לקטגוריה
-            const categorySection = document.createElement('div');
-            categorySection.className = 'print-category-page mb-16';
-
-            // כותרת הקטגוריה
-            const title = document.createElement('h2');
-            title.className = 'category-title text-2xl md:text-3xl font-extrabold text-slate-800 border-b-2 border-slate-300 pb-2 mb-6';
-            title.innerText = `נושא: ${category}`;
-            categorySection.appendChild(title);
-
-            // יצירת הפתקיות תחת הקטגוריה
-            const categoryConcepts = concepts.filter(c => c.category === category);
-            
-            const grid = document.createElement('div');
-            grid.className = 'grid grid-cols-1 gap-4'; // למסך
-
-            categoryConcepts.forEach(concept => {
-                const card = document.createElement('div');
-                card.className = 'concept-card bg-white p-5 rounded-xl shadow-sm border border-slate-200';
+            if (tabName === 'dictionary') {
+                dictView.classList.remove('hidden');
+                quizView.classList.add('hidden');
                 
-                card.innerHTML = `
-                    <div class="concept-header flex flex-col sm:flex-row sm:justify-between sm:align-center mb-3">
-                        <span class="concept-term-he text-xl font-bold text-slate-900">${concept.termHe}</span>
-                        <span class="concept-term-en text-sm sm:text-lg font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded" dir="ltr">${concept.termEn}</span>
-                    </div>
-                    <div class="concept-explanation text-slate-700 text-lg">
-                        ${concept.explanation}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+                // עיצוב הכפתור הפעיל
+                tabDict.className = "px-6 py-3 rounded-full font-bold text-lg transition-colors bg-indigo-600 text-white shadow-md";
+                tabQuiz.className = "px-6 py-3 rounded-full font-bold text-lg transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200";
+            } else {
+                dictView.classList.add('hidden');
+                quizView.classList.remove('hidden');
+                
+                // עיצוב הכפתור הפעיל
+                tabQuiz.className = "px-6 py-3 rounded-full font-bold text-lg transition-colors bg-green-600 text-white shadow-md";
+                tabDict.className = "px-6 py-3 rounded-full font-bold text-lg transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200";
+                
+                // ודא שמסך הפתיחה של החידון מוצג
+                document.getElementById('start-screen').classList.remove('hidden');
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('end-screen').classList.add('hidden');
+            }
+        }
 
-            categorySection.appendChild(grid);
-            container.appendChild(categorySection);
-        });
+        // ==========================================
+        // בניית המילון להדפסה (רץ מיד כשהדף עולה)
+        // ==========================================
+        function initDictionary() {
+            const categories = [...new Set(concepts.map(c => c.category))];
+            const container = document.getElementById('content-container');
+            container.innerHTML = ''; // ניקוי
+
+            categories.forEach(category => {
+                const categorySection = document.createElement('div');
+                categorySection.className = 'print-category-page mb-16';
+
+                const title = document.createElement('h2');
+                title.className = 'category-title text-2xl md:text-3xl font-extrabold text-slate-800 border-b-2 border-slate-300 pb-2 mb-6';
+                title.innerText = `נושא: ${category}`;
+                categorySection.appendChild(title);
+
+                const categoryConcepts = concepts.filter(c => c.category === category);
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 gap-4';
+
+                categoryConcepts.forEach(concept => {
+                    const card = document.createElement('div');
+                    card.className = 'concept-card bg-white p-5 rounded-xl shadow-sm border border-slate-200';
+                    card.innerHTML = `
+                        <div class="concept-header flex flex-col sm:flex-row sm:justify-between sm:align-center mb-3">
+                            <span class="concept-term-he text-xl font-bold text-slate-900">${concept.termHe}</span>
+                            <span class="concept-term-en text-sm sm:text-lg font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded" dir="ltr">${concept.termEn}</span>
+                        </div>
+                        <div class="concept-explanation text-slate-700 text-lg">
+                            ${concept.explanation}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                categorySection.appendChild(grid);
+                container.appendChild(categorySection);
+            });
+        }
+
+        // ==========================================
+        // לוגיקת החידון
+        // ==========================================
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswering = false;
+        const TOTAL_QUESTIONS_PER_GAME = 10;
+
+        function shuffleArray(array) {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            currentQuestions = shuffleArray(concepts).slice(0, TOTAL_QUESTIONS_PER_GAME);
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('total-q-num').innerText = TOTAL_QUESTIONS_PER_GAME;
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswering = false;
+            const currentQ = currentQuestions[currentQuestionIndex];
+            
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            const progressPercent = ((currentQuestionIndex) / TOTAL_QUESTIONS_PER_GAME) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('question-text').innerText = `"${currentQ.explanation}"`;
+
+            const options = [currentQ];
+            const wrongConcepts = shuffleArray(concepts.filter(c => c.termEn !== currentQ.termEn));
+            options.push(wrongConcepts[0], wrongConcepts[1], wrongConcepts[2]);
+            
+            const shuffledOptions = shuffleArray(options);
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            shuffledOptions.forEach((option) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-right bg-white border-2 border-slate-200 text-slate-700 font-medium p-4 rounded-xl flex items-center justify-between hover:border-green-400 hover:bg-green-50';
+                btn.innerHTML = `
+                    <span class="text-lg font-bold">${option.termHe}</span>
+                    <span class="text-slate-500 font-mono text-sm bg-slate-100 px-2 py-1 rounded" dir="ltr">${option.termEn}</span>
+                `;
+                btn.onclick = () => checkAnswer(btn, option, currentQ);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(clickedBtn, selectedOption, correctOption) {
+            if (isAnswering) return;
+            isAnswering = true;
+
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedOption.termEn === correctOption.termEn) {
+                clickedBtn.classList.add('correct-answer');
+                score++;
+                document.getElementById('score-display').innerText = score;
+            } else {
+                clickedBtn.classList.add('wrong-answer');
+                buttons.forEach(btn => {
+                    if (btn.innerHTML.includes(correctOption.termEn)) {
+                        btn.classList.add('correct-answer');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < TOTAL_QUESTIONS_PER_GAME) {
+                    loadQuestion();
+                } else {
+                    endGame();
+                }
+            }, 1800);
+        }
+
+        function endGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            
+            const titleElem = document.getElementById('end-title');
+            const emojiElem = document.getElementById('end-emoji');
+            
+            if (score === TOTAL_QUESTIONS_PER_GAME) {
+                titleElem.innerText = "מושלם! אלופת סייבר!";
+                emojiElem.innerText = "🏆";
+            } else if (score >= 7) {
+                titleElem.innerText = "עבודה מעולה!";
+                emojiElem.innerText = "🌟";
+            } else if (score >= 4) {
+                titleElem.innerText = "לא רע, כדאי לחזור קצת על החומר";
+                emojiElem.innerText = "👍";
+            } else {
+                titleElem.innerText = "יש עוד קצת מה ללמוד...";
+                emojiElem.innerText = "📚";
+            }
+        }
+
+        // פונקציית יציאה באמצע משחק
+        function quitGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            // אפשר גם לאפס משתנים אם רוצים, אבל startGame עושה זאת ממילא בפעם הבאה
+        }
+
+        // הפעלה ראשונית
+        initDictionary();
+
     </script>
 </body>
 </html>
